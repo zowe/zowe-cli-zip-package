@@ -57,7 +57,7 @@ def GIZA_ARTIFACTORY_URL = "https://gizaartifactory.jfrog.io/gizaartifactory/api
 /**
 * The Zowe CLI Bundle Version to deploy to Artifactory
 */
-def ZOWE_CLI_BUNDLE_VERSION = "1.6.0-SNAPSHOT"
+def ZOWE_CLI_BUNDLE_VERSION = "2.x-ACTIVE-DEVELOPMENT"
 
 /**
 *  The Artifactory Server to deploy to.
@@ -129,7 +129,7 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES') {
                     
                     sh "npm set registry https://registry.npmjs.org/"
-                    sh "npm set @brightside:registry ${GIZA_ARTIFACTORY_URL}"
+                    sh "npm set @zowe:registry ${GIZA_ARTIFACTORY_URL}"
                     withCredentials([usernamePassword(credentialsId: ARTIFACTORY_CREDENTIALS_ID, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                         // TODO: Consider using tooling like artifactory-download-spec to get license.zip. Post-Infrastructure migration answer.
                         sh "mkdir -p licenses && (cd licenses && curl -X GET -s -u$USERNAME:$PASSWORD -o zowe_licenses_full.zip https://gizaartifactory.jfrog.io/gizaartifactory/$ARTIFACTORY_RELEASE_REPO$ZOWE_LICENSE_ZIP_PATH)"
@@ -138,9 +138,11 @@ pipeline {
                     sh "npm install jsonfile"
 
                     script {
-                        sh "npm pack @brightside/db2@lts-incremental"
-                        sh "npm pack @brightside/core@lts-incremental"
-                        sh "npm pack @brightside/cics@lts-incremental"
+                        sh "npm pack @zowe/cli"
+                        sh "npm pack @zowe/db2-for-zowe-cli"
+                        sh "npm pack @zowe/cics-for-zowe-cli"
+                        sh "npm pack @zowe/ims-for-zowe-cli"
+                        sh "npm pack @zowe/mq-for-zowe-cli"
                         sh "./scripts/repackage_bundle.sh *.tgz"
                         sh "mv zowe-cli-package.zip zowe-cli-package-${ZOWE_CLI_BUNDLE_VERSION}.zip"
                     }
